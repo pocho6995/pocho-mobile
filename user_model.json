@@ -1,0 +1,379 @@
+{
+  "user": {
+    "id": 1,
+    "phone": "+998901234567",
+    "name": "Водитель PoCho",
+    "email": "driver@pocho.uz",
+    "avatar": null,
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-12-20T14:25:00Z",
+    "language": "ru",
+    "balance": 125000.0,
+    "level": "Золотой",
+    "rating": 4.8,
+    "total_stations_visited": 127,
+    "total_spent": 1250000.0
+  },
+  "profile": {
+    "documents": {
+      "passport": {
+        "image_url": null,
+        "verified": false,
+        "uploaded_at": null
+      },
+      "driving_license": {
+        "image_url": null,
+        "verified": false,
+        "uploaded_at": null
+      }
+    },
+    "settings": {
+      "notifications_enabled": true,
+      "language": "ru"
+    }
+  },
+  "favorites": {
+    "fuel_stations": [
+      {
+        "id": 1,
+        "name": "PoCho City Station",
+        "category": "Заправка",
+        "working_hours": "24/7",
+        "address": "Mustaqillik ko'chasi, 10",
+        "coordinates": "41.3111,69.2797",
+        "rating": 4.8,
+        "reviews_count": 245,
+        "preview": "https://example.com/images/station1.jpg",
+        "description": "Современная заправка с полным спектром услуг",
+        "phone": "+998901234567",
+        "email": "info@pochostation.uz",
+        "website": "https://pochostation.uz",
+        "services": ["Кафе", "Магазин", "Туалет", "Мойка", "Парковка"],
+        "fuel_price": [
+          {
+            "id": 1,
+            "fuel_type": "AI-80",
+            "place_id": 1,
+            "price": 8500.0,
+            "created_at": "2024-12-20T10:00:00Z"
+          },
+          {
+            "id": 2,
+            "fuel_type": "AI-91",
+            "place_id": 1,
+            "price": 9500.0,
+            "created_at": "2024-12-20T10:00:00Z"
+          },
+          {
+            "id": 3,
+            "fuel_type": "AI-95",
+            "place_id": 1,
+            "price": 10500.0,
+            "created_at": "2024-12-20T10:00:00Z"
+          },
+          {
+            "id": 4,
+            "fuel_type": "Дизель",
+            "place_id": 1,
+            "price": 9200.0,
+            "created_at": "2024-12-20T10:00:00Z"
+          }
+        ],
+        "added_to_favorites_at": "2024-11-15T08:30:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Highway Fuel",
+        "category": "Заправка",
+        "working_hours": "06:00 - 24:00",
+        "address": "Registon yo'li, 25",
+        "coordinates": "39.6542,66.9597",
+        "rating": 4.6,
+        "reviews_count": 189,
+        "preview": "https://example.com/images/station2.jpg",
+        "description": "Заправка на трассе с удобной парковкой",
+        "phone": "+998901234568",
+        "email": "info@highwayfuel.uz",
+        "website": "https://highwayfuel.uz",
+        "services": ["Кафе", "Магазин", "Туалет", "Парковка"],
+        "fuel_price": [
+          {
+            "id": 5,
+            "fuel_type": "AI-80",
+            "place_id": 2,
+            "price": 8400.0,
+            "created_at": "2024-12-20T09:30:00Z"
+          },
+          {
+            "id": 6,
+            "fuel_type": "AI-95",
+            "place_id": 2,
+            "price": 10400.0,
+            "created_at": "2024-12-20T09:30:00Z"
+          }
+        ],
+        "added_to_favorites_at": "2024-10-20T12:15:00Z"
+      }
+    ],
+    "restaurants": [
+      {
+        "id": 1,
+        "name": "Ресторан Национальной Кухни",
+        "address": "Amir Temur ko'chasi, 15",
+        "rating": 4.7,
+        "review_count": 342,
+        "price_range": "$$$",
+        "image_url": "https://example.com/images/restaurant1.jpg",
+        "category": "Ресторан",
+        "cuisine": "Узбекская",
+        "working_hours": "10:00 - 23:00",
+        "description": "Традиционная узбекская кухня в современной интерпретации",
+        "latitude": 41.3111,
+        "longitude": 69.2797,
+        "distance": 2.5,
+        "features": ["Wi-Fi", "Парковка", "Доставка", "Терраса"],
+        "added_to_favorites_at": "2024-11-10T18:00:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Cafe Central",
+        "address": "Navoi ko'chasi, 8",
+        "rating": 4.5,
+        "review_count": 198,
+        "price_range": "$$",
+        "image_url": "https://example.com/images/restaurant2.jpg",
+        "category": "Кафе",
+        "cuisine": "Европейская",
+        "working_hours": "08:00 - 22:00",
+        "description": "Уютное кафе с европейской кухней и отличным кофе",
+        "latitude": 41.3050,
+        "longitude": 69.2700,
+        "distance": 1.8,
+        "features": ["Wi-Fi", "Парковка", "Терраса"],
+        "added_to_favorites_at": "2024-12-01T14:20:00Z"
+      }
+    ],
+    "car_services": [
+      {
+        "id": 1,
+        "name": "Автосервис Премиум",
+        "address": "Halqa yo'li, 55",
+        "rating": 4.9,
+        "review_count": 156,
+        "image_url": "https://example.com/images/car_service1.jpg",
+        "category": "СТО",
+        "services": [
+          "Ремонт двигателя",
+          "Замена масла",
+          "Диагностика",
+          "Ремонт подвески",
+          "Шиномонтаж"
+        ],
+        "working_hours": "09:00 - 18:00",
+        "description": "Полный спектр услуг по ремонту и обслуживанию автомобилей",
+        "latitude": 41.3275,
+        "longitude": 69.2817,
+        "distance": 3.2,
+        "features": ["Парковка", "Кафе", "Wi-Fi", "Ожидание"],
+        "phone": "+998901234567",
+        "added_to_favorites_at": "2024-10-05T10:00:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Шиномонтаж 24/7",
+        "address": "Chilonzor ko'chasi, 12",
+        "rating": 4.6,
+        "review_count": 89,
+        "image_url": "https://example.com/images/car_service2.jpg",
+        "category": "Шиномонтаж",
+        "services": [
+          "Шиномонтаж",
+          "Балансировка",
+          "Ремонт проколов",
+          "Хранение шин"
+        ],
+        "working_hours": "24/7",
+        "description": "Круглосуточный шиномонтаж с качественным оборудованием",
+        "latitude": 41.2900,
+        "longitude": 69.2500,
+        "distance": 5.1,
+        "features": ["Парковка", "Ожидание"],
+        "phone": "+998901234568",
+        "added_to_favorites_at": "2024-11-20T16:30:00Z"
+      }
+    ],
+    "car_washes": [
+      {
+        "id": 1,
+        "name": "Автомойка Премиум",
+        "address": "Yunusobod ko'chasi, 25",
+        "rating": 4.8,
+        "review_count": 203,
+        "image_url": "https://example.com/images/car_wash1.jpg",
+        "wash_types": [
+          "Ручная мойка",
+          "Автоматическая мойка",
+          "Полировка",
+          "Химчистка салона"
+        ],
+        "price_range": "Премиум",
+        "working_hours": "08:00 - 20:00",
+        "description": "Профессиональная мойка автомобилей с использованием качественных средств",
+        "latitude": 41.3200,
+        "longitude": 69.2900,
+        "distance": 2.8,
+        "features": ["Парковка", "Кафе", "Wi-Fi", "Пылесос"],
+        "phone": "+998901234569",
+        "added_to_favorites_at": "2024-09-15T11:00:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Экспресс Мойка",
+        "address": "Mirzo Ulug'bek ko'chasi, 40",
+        "rating": 4.4,
+        "review_count": 127,
+        "image_url": "https://example.com/images/car_wash2.jpg",
+        "wash_types": [
+          "Автоматическая мойка",
+          "Сушка"
+        ],
+        "price_range": "Стандарт",
+        "working_hours": "07:00 - 22:00",
+        "description": "Быстрая автоматическая мойка по доступным ценам",
+        "latitude": 41.3100,
+        "longitude": 69.2600,
+        "distance": 4.5,
+        "features": ["Парковка", "Пылесос"],
+        "phone": "+998901234570",
+        "added_to_favorites_at": "2024-12-10T09:15:00Z"
+      }
+    ],
+    "charging_stations": [
+      {
+        "id": 1,
+        "name": "Электрозаправка Центр",
+        "address": "Amir Temur ko'chasi, 50",
+        "rating": 4.7,
+        "review_count": 94,
+        "image_url": "https://example.com/images/charging1.jpg",
+        "connector_types": [
+          "Type 2",
+          "CCS",
+          "CHAdeMO"
+        ],
+        "power": "150 кВт",
+        "price_per_kwh": 2500.0,
+        "working_hours": "24/7",
+        "description": "Современная зарядная станция с быстрой зарядкой",
+        "latitude": 41.3150,
+        "longitude": 69.2750,
+        "distance": 1.5,
+        "features": ["Парковка", "Кафе", "Wi-Fi", "Туалет", "Магазин"],
+        "phone": "+998901234571",
+        "available_connectors": 3,
+        "total_connectors": 4,
+        "is_available": true,
+        "added_to_favorites_at": "2024-11-25T13:45:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Tesla Supercharger",
+        "address": "Navoi ko'chasi, 100",
+        "rating": 4.9,
+        "review_count": 67,
+        "image_url": "https://example.com/images/charging2.jpg",
+        "connector_types": [
+          "Tesla Supercharger",
+          "Type 2"
+        ],
+        "power": "250 кВт",
+        "price_per_kwh": 3000.0,
+        "working_hours": "24/7",
+        "description": "Станция быстрой зарядки Tesla Supercharger",
+        "latitude": 41.3000,
+        "longitude": 69.2650,
+        "distance": 2.3,
+        "features": ["Парковка", "Wi-Fi", "Туалет"],
+        "phone": "+998901234572",
+        "available_connectors": 2,
+        "total_connectors": 2,
+        "is_available": true,
+        "added_to_favorites_at": "2024-12-05T10:20:00Z"
+      }
+    ]
+  },
+  "statistics": {
+    "total_fuel_stations_visited": 127,
+    "favorite_fuel_stations_count": 8,
+    "favorite_restaurants_count": 2,
+    "favorite_car_services_count": 2,
+    "favorite_car_washes_count": 2,
+    "favorite_charging_stations_count": 2,
+    "total_favorites_count": 16,
+    "total_spent": 1250000.0,
+    "average_rating_given": 4.8,
+    "reviews_written": 12
+  },
+  "achievements": [
+    {
+      "id": 1,
+      "icon": "local_gas_station",
+      "title": "Первая заправка",
+      "description": "Заправьтесь впервые",
+      "unlocked": true,
+      "unlocked_at": "2024-01-20T10:00:00Z",
+      "color": 4278190144
+    },
+    {
+      "id": 2,
+      "icon": "star",
+      "title": "Звездный водитель",
+      "description": "50+ заправок",
+      "unlocked": true,
+      "unlocked_at": "2024-06-15T14:30:00Z",
+      "color": 4294963200
+    },
+    {
+      "id": 3,
+      "icon": "favorite",
+      "title": "Любитель",
+      "description": "10+ избранных",
+      "unlocked": true,
+      "unlocked_at": "2024-08-10T16:20:00Z",
+      "color": 4294902009
+    },
+    {
+      "id": 4,
+      "icon": "workspace_premium",
+      "title": "Премиум",
+      "description": "Активируйте подписку",
+      "unlocked": false,
+      "unlocked_at": null,
+      "color": 4291629824
+    }
+  ],
+  "notifications": {
+    "enabled": true,
+    "price_alerts": true,
+    "new_stations": true,
+    "promotions": true,
+    "reviews": true
+  },
+  "transactions": [
+    {
+      "id": 1,
+      "type": "top_up",
+      "amount": 50000.0,
+      "description": "Пополнение баланса",
+      "created_at": "2024-12-15T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "type": "purchase",
+      "amount": -15000.0,
+      "description": "Оплата заправки",
+      "created_at": "2024-12-18T14:30:00Z"
+    }
+  ]
+}
+
