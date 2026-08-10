@@ -81,7 +81,7 @@ class SupportWebSocketService {
               .replaceAll('127.0.0.1', '10.0.2.2')
               .replaceAll('localhost', '10.0.2.2');
         } else {
-          // Для продакшн URL (wss://app.olmatech.uz) используем как есть
+          // Для продакшн URL (wss://olmatech.uz) используем как есть
           baseUrl = wsBaseUrl;
         }
       } else {
