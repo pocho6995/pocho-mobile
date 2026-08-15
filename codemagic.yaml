@@ -62,73 +62,123 @@ workflows:
       - build/app/outputs/bundle/release/*.aab
 
 
-  # ============================================================
-  # IOS SIMULATOR
-  # ============================================================
-
   ios-simulator:
-    name: PoCho iOS Simulator
-    instance_type: mac_mini_m2
-    max_build_duration: 90
+  name: PoCho iOS Simulator
+  instance_type: mac_mini_m2
+  max_build_duration: 90
 
-    environment:
-      vars:
-        APP_VERSION: "2.0.2"
-        API_BASE_URL: https://olmatech.uz
-        WS_BASE_URL: wss://olmatech.uz
+  environment:
+    vars:
+      APP_VERSION: "2.0.2"
+      API_BASE_URL: https://olmatech.uz
+      WS_BASE_URL: wss://olmatech.uz
 
-      flutter: stable
-      xcode: latest
-      cocoapods: default
+    flutter: stable
+    xcode: latest
+    cocoapods: default
 
-    scripts:
+  scripts:
+    - name: Show build environment
+      script: |
+        echo "======================================"
+        echo "IOS SIMULATOR WORKFLOW"
+        echo "======================================"
+        flutter --version
+        xcodebuild -version
+        echo "Commit: $CM_COMMIT"
 
-      - name: Create .env
-        script: |
-          echo "API_BASE_URL=${API_BASE_URL}" > "$CM_BUILD_DIR/.env"
-          echo "WS_BASE_URL=${WS_BASE_URL}" >> "$CM_BUILD_DIR/.env"
+    - name: Create .env
+      script: |
+        echo "API_BASE_URL=${API_BASE_URL}" > "$CM_BUILD_DIR/.env"
+        echo "WS_BASE_URL=${WS_BASE_URL}" >> "$CM_BUILD_DIR/.env"
 
-      # google_maps_flutter_ios пока не поддерживает SwiftPM
-      # Поэтому используем CocoaPods
-      - name: Disable Swift Package Manager
-        script: |
-          flutter config --no-enable-swift-package-manager
+    - name: Disable Swift Package Manager
+      script: |
+        flutter config --no-enable-swift-package-manager
 
-      - name: Flutter doctor
-        script: |
-          flutter doctor -v
+    - name: Get Flutter packages
+      script: |
+        flutter pub get
 
-      - name: Get Flutter packages
-        script: |
-          flutter pub get
+    - name: Install CocoaPods
+      script: |
+        cd "$CM_BUILD_DIR/ios"
+        pod install
 
-      - name: Build iOS Simulator
-        script: |
-          flutter build ios \
-            --simulator \
-            --debug \
-            --build-name="$APP_VERSION" \
-            --build-number="$BUILD_NUMBER"
+    - name: Check Xcode simulator destinations
+      script: |
+        xcodebuild \
+          -workspace "$CM_BUILD_DIR/ios/Runner.xcworkspace" \
+          -scheme Runner \
+          -showdestinations
 
-      - name: Verify Simulator App
-        script: |
-          APP_PATH="$CM_BUILD_DIR/build/ios/iphonesimulator/Runner.app"
+    - name: Build iOS Simulator
+      script: |
+        set -euo pipefail
 
-          if [ ! -d "$APP_PATH" ]; then
-            echo "ERROR: Runner.app not found:"
-            echo "$APP_PATH"
-            exit 1
-          fi
+        echo "======================================"
+        echo "BUILDING ONLY FOR IOS SIMULATOR"
+        echo "======================================"
 
-          echo "======================================"
-          echo "iOS Simulator build successful"
-          echo "======================================"
-          echo "App:"
-          echo "$APP_PATH"
+        rm -rf "$CM_BUILD_DIR/build/ios-simulator"
+
+        xcodebuild build \
+          -workspace "$CM_BUILD_DIR/ios/Runner.xcworkspace" \
+          -scheme Runner \
+          -configuration Debug \
+          -sdk iphonesimulator \
+          -destination 'generic/platform=iOS Simulator' \
+          -derivedDataPath "$CM_BUILD_DIR/build/ios-simulator" \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          DEVELOPMENT_TEAM=""
+
+    - name: Find Runner.app
+      script: |
+        set -euo pipefail
+
+        APP_PATH=$(find "$CM_BUILD_DIR/build/ios-simulator" \
+          -type d \
+          -path "*/Debug-iphonesimulator/Runner.app" \
+          -print \
+          -quit)
+
+        if [ -z "$APP_PATH" ]; then
+          echo "ERROR: Runner.app not found"
           echo ""
-          echo "Size:"
-          du -sh "$APP_PATH"
+          echo "Available .app files:"
+          find "$CM_BUILD_DIR/build/ios-simulator" \
+            -type d \
+            -name "*.app" \
+            -print || true
+          exit 1
+        fi
 
-    artifacts:
-      - build/ios/iphonesimulator/Runner.app
-      - /tmp/xcodebuild_logs/*.log
+        echo "Runner.app found:"
+        echo "$APP_PATH"
+
+        mkdir -p "$CM_BUILD_DIR/build/ios/iphonesimulator"
+
+        rm -rf \
+          "$CM_BUILD_DIR/build/ios/iphonesimulator/Runner.app"
+
+        cp -R \
+          "$APP_PATH" \
+          "$CM_BUILD_DIR/build/ios/iphonesimulator/Runner.app"
+
+        echo ""
+        echo "======================================"
+        echo "SIMULATOR BUILD SUCCESS"
+        echo "======================================"
+
+        file \
+          "$CM_BUILD_DIR/build/ios/iphonesimulator/Runner.app/Runner" || true
+
+        du -sh \
+          "$CM_BUILD_DIR/build/ios/iphonesimulator/Runner.app"
+
+  artifacts:
+    - build/ios/iphonesimulator/Runner.app
+    - build/ios-simulator/**/Build/Products/Debug-iphonesimulator/*.app
+    - /tmp/xcodebuild_logs/*.log
