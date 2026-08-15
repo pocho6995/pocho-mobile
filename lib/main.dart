@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 
+import 'config/app_config.dart';
 import 'screens/auth/otp_screen.dart';
 import 'screens/auth/phone_auth_screen.dart';
 import 'screens/splash_screen.dart';
@@ -127,6 +128,8 @@ Future<void> main() async {
     // Если .env файл не найден, используем значения по умолчанию
     debugPrint('⚠️ .env file not found, using default values: $e');
   }
+  debugPrint('🌐 Resolved API: ${AppConfig.apiBaseUrl}');
+  debugPrint('🌐 Resolved WS:  ${AppConfig.wsBaseUrl}');
 
   // Инициализация SharedPreferences заранее для избежания проблем с каналом
   try {

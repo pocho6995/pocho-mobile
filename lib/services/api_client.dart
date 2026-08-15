@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../config/app_config.dart';
 import 'token_storage.dart';
 import 'auth_error_handler.dart';
 
@@ -14,52 +13,9 @@ class ApiClient {
 
   ApiClient({http.Client? client, this.tokenStorage})
     : client = client ?? http.Client();
-  static String get baseUrl {
-    // Сначала проверяем .env файл
-    final envUrl = dotenv.env['API_BASE_URL'];
-    if (envUrl != null && envUrl.isNotEmpty) {
-      // Если в .env указан IP адрес сети (192.168.x.x, 10.x.x.x и т.д.), используем его для всех платформ
-      if (envUrl.contains('192.168.') ||
-          envUrl.contains('10.0.2.2') ||
-          (envUrl.contains('10.') && !envUrl.contains('127.0.0.1'))) {
-        return envUrl;
-      }
 
-      // Если в .env указан localhost или 127.0.0.1, автоматически заменяем для Android эмулятора
-      // Бэкенд запущен с HOST=0.0.0.0, поэтому доступен по всем интерфейсам
-      if (Platform.isAndroid &&
-          (envUrl.contains('127.0.0.1') || envUrl.contains('localhost'))) {
-        final correctedUrl = envUrl
-            .replaceAll('127.0.0.1', '10.0.2.2')
-            .replaceAll('localhost', '10.0.2.2');
-        return correctedUrl;
-      }
-
-      // Для iOS и Web используем localhost как есть
-      return envUrl;
-    }
-
-    // Если указан через переменную окружения компиляции, используем его
-    const compileEnvUrl = String.fromEnvironment('API_BASE_URL');
-    if (compileEnvUrl.isNotEmpty) {
-      return compileEnvUrl;
-    }
-
-    // Автоматический выбор URL в зависимости от платформы (если .env не настроен)
-    String defaultUrl;
-    if (Platform.isAndroid) {
-      // Для Android эмулятора используем специальный адрес
-      defaultUrl = 'http://10.0.2.2:8000';
-    } else if (Platform.isIOS) {
-      // Для iOS симулятора используем localhost
-      defaultUrl = 'http://localhost:8000';
-    } else {
-      // Для веб и других платформ используем localhost
-      defaultUrl = 'http://localhost:8000';
-    }
-
-    return defaultUrl;
-  }
+  /// Базовый URL API (по умолчанию https://olmatech.uz).
+  static String get baseUrl => AppConfig.apiBaseUrl;
 
   /// Проверка подключения к серверу
   static Future<bool> checkServerConnection() async {

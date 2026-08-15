@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../config/app_config.dart';
 import '../models/notification/notification.dart';
 import 'token_storage.dart';
-import 'api_client.dart';
 
 /// WebSocket сервис для получения уведомлений в реальном времени
 class NotificationWebSocketService {
@@ -41,47 +38,7 @@ class NotificationWebSocketService {
         return;
       }
 
-      // Получаем базовый URL для WebSocket
-      // Используем ту же логику, что и ApiClient для консистентности
-      String baseUrl;
-      final wsBaseUrlRaw = dotenv.env['WS_BASE_URL'];
-      final wsBaseUrl = wsBaseUrlRaw?.trim();
-
-      if (wsBaseUrl != null && wsBaseUrl.isNotEmpty) {
-        // Если в .env указан IP адрес сети (192.168.x.x, 10.0.2.2 и т.д.), используем его для всех платформ
-        if (wsBaseUrl.contains('192.168.') ||
-            wsBaseUrl.contains('10.0.2.2') ||
-            (wsBaseUrl.contains('10.') && !wsBaseUrl.contains('127.0.0.1'))) {
-          baseUrl = wsBaseUrl;
-        } else if (Platform.isAndroid &&
-            (wsBaseUrl.contains('127.0.0.1') ||
-                wsBaseUrl.contains('localhost'))) {
-          // Если в .env указан localhost или 127.0.0.1, автоматически заменяем для Android эмулятора
-          baseUrl = wsBaseUrl
-              .replaceAll('127.0.0.1', '10.0.2.2')
-              .replaceAll('localhost', '10.0.2.2');
-        } else {
-          // Для продакшн URL (wss://olmatech.uz) используем как есть
-          baseUrl = wsBaseUrl;
-        }
-      } else {
-        // Если WS_BASE_URL не указан, используем базовый URL из ApiClient (он уже скорректирован)
-        final apiBaseUrl = ApiClient.baseUrl;
-        // Преобразуем протокол: https:// -> wss://, http:// -> ws://
-        if (apiBaseUrl.startsWith('https://')) {
-          baseUrl = apiBaseUrl.replaceFirst('https://', 'wss://');
-        } else if (apiBaseUrl.startsWith('http://')) {
-          baseUrl = apiBaseUrl.replaceFirst('http://', 'ws://');
-        } else {
-          // Если протокол уже указан (wss:// или ws://), используем как есть
-          baseUrl = apiBaseUrl;
-        }
-      }
-
-      // Убираем trailing slash если есть
-      baseUrl = baseUrl.endsWith('/')
-          ? baseUrl.substring(0, baseUrl.length - 1)
-          : baseUrl;
+      final baseUrl = AppConfig.wsBaseUrl;
 
       final wsUrl =
           '$baseUrl/api/v1/notifications/ws/notifications?token=${Uri.encodeComponent(token)}';

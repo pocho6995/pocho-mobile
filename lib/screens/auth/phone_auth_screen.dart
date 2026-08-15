@@ -67,10 +67,11 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       });
 
       try {
-        final phone = _phoneController.text.trim();
-        final cleanedPhone = phone.startsWith('+998')
-            ? phone
-            : '+998${phone.replaceAll(' ', '')}';
+        // prefixText '+998 ' не входит в controller — собираем E.164 без пробелов
+        final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
+        final cleanedPhone = digits.startsWith('998')
+            ? '+$digits'
+            : '+998$digits';
 
         if (kDebugMode) {
           print('📱 Проверка регистрации для: $cleanedPhone');
