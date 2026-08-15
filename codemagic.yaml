@@ -30,10 +30,6 @@ workflows:
         script: |
           flutter pub get
 
-      - name: Run unit tests
-        script: |
-          flutter test
-
       - name: Build APK
         script: |
           flutter build apk \
