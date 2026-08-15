@@ -1,4 +1,7 @@
-# Только билд артефактов (APK / IPA). Без загрузки в Google Play / App Store / TestFlight.
+# Только билд артефактов. Без загрузки в Google Play / App Store / TestFlight.
+#
+# iOS: для работы без сертификатов запускай workflow «PoCho iOS Simulator».
+# Подписанный IPA («PoCho iOS Build») нужен только когда настроен App Store Connect.
 
 workflows:
   android-build:
@@ -41,12 +44,58 @@ workflows:
       - build/app/outputs/flutter-apk/*.apk
       - build/app/outputs/bundle/release/*.aab
 
+  # Без code signing / App Store Connect — стабильный iOS-билд на Codemagic.
+  ios-simulator:
+    name: PoCho iOS Simulator
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+    environment:
+      vars:
+        APP_VERSION: "2.0.2"
+        API_BASE_URL: https://olmatech.uz
+        WS_BASE_URL: wss://olmatech.uz
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Create .env
+        script: |
+          echo "API_BASE_URL=${API_BASE_URL}" > "$CM_BUILD_DIR/.env"
+          echo "WS_BASE_URL=${WS_BASE_URL}" >> "$CM_BUILD_DIR/.env"
+
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      - name: Install CocoaPods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+
+      - name: Set version
+        script: |
+          cd ios
+          agvtool new-version -all "$((BUILD_NUMBER))"
+          agvtool new-marketing-version "$APP_VERSION"
+
+      # Без подписи (ваш пример Generic Destination / iphonesimulator).
+      # Для Flutter: flutter build ios --simulator → Runner.app
+      - name: Build for iOS Simulator
+        script: |
+          flutter build ios --simulator --debug \
+            --build-name="$APP_VERSION" \
+            --build-number="$((BUILD_NUMBER))"
+
+    artifacts:
+      - build/ios/iphonesimulator/Runner.app
+      - /Users/builder/Library/Developer/Xcode/DerivedData/**/*.app
+      - /tmp/xcodebuild_logs/*.log
+
+  # Подписанный IPA — нужен integration App Store Connect + профили.
   ios-build:
     name: PoCho iOS Build
     instance_type: mac_mini_m2
     max_build_duration: 120
     integrations:
-      # Нужен для подписи IPA. Имя ключа в Codemagic → Integrations.
       app_store_connect: PoCho
     environment:
       ios_signing:
