@@ -1,24 +1,39 @@
-# Android APK/AAB + iOS Simulator .app (без подписи, без App Store).
+# Android APK/AAB + iOS Simulator .app
+# Без iOS code signing / Provisioning Profile / App Store.
+#
 # В Codemagic запускай только:
 #   - PoCho Android Build
 #   - PoCho iOS Simulator
 
 workflows:
+
+  # ============================================================
+  # ANDROID
+  # ============================================================
+
   android-build:
     name: PoCho Android Build
     instance_type: mac_mini_m2
     max_build_duration: 60
+
     environment:
       vars:
         APP_VERSION: "2.0.2"
         API_BASE_URL: https://olmatech.uz
         WS_BASE_URL: wss://olmatech.uz
+
       flutter: stable
+
     scripts:
+
       - name: Create .env
         script: |
           echo "API_BASE_URL=${API_BASE_URL}" > "$CM_BUILD_DIR/.env"
           echo "WS_BASE_URL=${WS_BASE_URL}" >> "$CM_BUILD_DIR/.env"
+
+      - name: Flutter doctor
+        script: |
+          flutter doctor -v
 
       - name: Get Flutter packages
         script: |
@@ -28,95 +43,92 @@ workflows:
         script: |
           flutter test
 
-      - name: Build APK (release)
+      - name: Build APK
         script: |
-          flutter build apk --release \
+          flutter build apk \
+            --release \
             --build-name="$APP_VERSION" \
-            --build-number="$((BUILD_NUMBER))"
+            --build-number="$BUILD_NUMBER"
 
-      - name: Build App Bundle (release)
+      - name: Build App Bundle
         script: |
-          flutter build appbundle --release \
+          flutter build appbundle \
+            --release \
             --build-name="$APP_VERSION" \
-            --build-number="$((BUILD_NUMBER))"
+            --build-number="$BUILD_NUMBER"
 
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
       - build/app/outputs/bundle/release/*.aab
 
+
+  # ============================================================
+  # IOS SIMULATOR
+  # ============================================================
+
   ios-simulator:
     name: PoCho iOS Simulator
     instance_type: mac_mini_m2
     max_build_duration: 90
+
     environment:
       vars:
         APP_VERSION: "2.0.2"
         API_BASE_URL: https://olmatech.uz
         WS_BASE_URL: wss://olmatech.uz
-        XCODE_WORKSPACE: ios/Runner.xcworkspace
-        XCODE_SCHEME: Runner
+
       flutter: stable
       xcode: latest
       cocoapods: default
+
     scripts:
+
       - name: Create .env
         script: |
           echo "API_BASE_URL=${API_BASE_URL}" > "$CM_BUILD_DIR/.env"
           echo "WS_BASE_URL=${WS_BASE_URL}" >> "$CM_BUILD_DIR/.env"
 
-      - name: Disable Swift Package Manager (CocoaPods only)
+      # google_maps_flutter_ios пока не поддерживает SwiftPM
+      # Поэтому используем CocoaPods
+      - name: Disable Swift Package Manager
         script: |
           flutter config --no-enable-swift-package-manager
+
+      - name: Flutter doctor
+        script: |
+          flutter doctor -v
 
       - name: Get Flutter packages
         script: |
           flutter pub get
 
-      - name: Generate iOS project files for simulator
+      - name: Build iOS Simulator
         script: |
-          # Только конфиг под симулятор — НЕ device / НЕ codesign
-          flutter build ios --config-only --debug --simulator \
+          flutter build ios \
+            --simulator \
+            --debug \
             --build-name="$APP_VERSION" \
-            --build-number="$((BUILD_NUMBER))"
+            --build-number="$BUILD_NUMBER"
 
-      - name: Install CocoaPods
+      - name: Verify Simulator App
         script: |
-          cd ios
-          pod install
+          APP_PATH="$CM_BUILD_DIR/build/ios/iphonesimulator/Runner.app"
 
-      - name: Set version
-        script: |
-          cd ios
-          agvtool new-version -all "$((BUILD_NUMBER))"
-          agvtool new-marketing-version "$APP_VERSION"
-
-      # Как в доке Codemagic: Generic Destination + iphonesimulator, без Team/профилей
-      - name: Build with Generic Destination
-        script: |
-          set -euo pipefail
-          xcodebuild build \
-            -workspace "$XCODE_WORKSPACE" \
-            -scheme "$XCODE_SCHEME" \
-            -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
-            -configuration Debug \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-          APP_PATH=$(find "$HOME/Library/Developer/Xcode/DerivedData" \
-            -path "*/Build/Products/Debug-iphonesimulator/Runner.app" \
-            -print -quit)
-          if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
-            echo "Runner.app for simulator not found"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "ERROR: Runner.app not found:"
+            echo "$APP_PATH"
             exit 1
           fi
-          echo "Built: $APP_PATH"
-          mkdir -p build/ios/iphonesimulator
-          rm -rf build/ios/iphonesimulator/Runner.app
-          cp -R "$APP_PATH" build/ios/iphonesimulator/Runner.app
+
+          echo "======================================"
+          echo "iOS Simulator build successful"
+          echo "======================================"
+          echo "App:"
+          echo "$APP_PATH"
+          echo ""
+          echo "Size:"
+          du -sh "$APP_PATH"
 
     artifacts:
       - build/ios/iphonesimulator/Runner.app
-      - /Users/builder/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
       - /tmp/xcodebuild_logs/*.log
