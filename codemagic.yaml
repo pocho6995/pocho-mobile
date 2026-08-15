@@ -79,11 +79,14 @@ workflows:
       - name: Get Flutter packages
         script: |
           flutter pub get
+          flutter precache --ios
 
       - name: Install CocoaPods
         script: |
           cd "$CM_BUILD_DIR/ios"
-          pod install
+          # Ensure Generated.xcconfig exists before pods
+          test -f Flutter/Generated.xcconfig
+          pod install --verbose
 
       - name: Check Xcode simulator destinations
         script: |
