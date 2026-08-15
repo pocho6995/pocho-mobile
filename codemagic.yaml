@@ -84,8 +84,8 @@ workflows:
       - name: Install CocoaPods
         script: |
           cd "$CM_BUILD_DIR/ios"
-          # Ensure Generated.xcconfig exists before pods
           test -f Flutter/Generated.xcconfig
+          rm -rf Pods Podfile.lock
           pod install --verbose
 
       - name: Check Xcode simulator destinations
