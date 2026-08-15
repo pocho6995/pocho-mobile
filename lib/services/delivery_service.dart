@@ -12,12 +12,19 @@ import '../models/delivery/delivery_order.dart';
 import '../models/delivery/delivery_calculator.dart';
 import '../models/delivery/delivery_api_tz.dart';
 import '../models/delivery/package_size.dart';
+import '../utils/image_url_helper.dart';
 import 'api_client.dart';
 
 class DeliveryService {
   final ApiClient apiClient;
 
   DeliveryService({required this.apiClient});
+
+  /// Кэш статуса водителя: иначе MainShell + HomeTab + Profile
+  /// одновременно долбят /drivers/me и подвешивают UI.
+  Driver? _cachedDriver;
+  bool? _isDriver; // null = ещё не проверяли
+  Future<Driver>? _driverProfileInFlight;
 
   // ==================== Regions ====================
 
@@ -110,7 +117,10 @@ class DeliveryService {
       if (data == null) {
         throw Exception('Failed to parse driver registration');
       }
-      return Driver.fromJson(data);
+      final driver = Driver.fromJson(data);
+      _cachedDriver = driver;
+      _isDriver = true;
+      return driver;
     } catch (e) {
       if (kDebugMode) {
         print('DeliveryService.registerDriver error: $e');
@@ -119,8 +129,40 @@ class DeliveryService {
     }
   }
 
-  /// Получить свой профиль водителя
-  Future<Driver> getMyDriverProfile() async {
+  /// Получить свой профиль водителя (с кэшем и дедупликацией запросов)
+  Future<Driver> getMyDriverProfile({bool forceRefresh = false}) async {
+    if (!forceRefresh) {
+      if (_isDriver == true && _cachedDriver != null) {
+        return _cachedDriver!;
+      }
+      if (_isDriver == false) {
+        throw Exception(
+          'API Error: 404 - {"detail":"Вы не зарегистрированы как водитель"}',
+        );
+      }
+      if (_driverProfileInFlight != null) {
+        return _driverProfileInFlight!;
+      }
+    }
+
+    _driverProfileInFlight = _fetchMyDriverProfile();
+    try {
+      final driver = await _driverProfileInFlight!;
+      _cachedDriver = driver;
+      _isDriver = true;
+      return driver;
+    } catch (e) {
+      if (_isNotRegisteredDriverError(e)) {
+        _isDriver = false;
+        _cachedDriver = null;
+      }
+      rethrow;
+    } finally {
+      _driverProfileInFlight = null;
+    }
+  }
+
+  Future<Driver> _fetchMyDriverProfile() async {
     try {
       final response = await apiClient.get('/api/v1/drivers/me');
       final data = apiClient.parseResponse(response);
@@ -129,11 +171,37 @@ class DeliveryService {
       }
       return Driver.fromJson(data);
     } catch (e) {
-      if (kDebugMode) {
+      // 404 «не водитель» — ожидаемый кейс, не спамим лог
+      if (kDebugMode && !_isNotRegisteredDriverError(e)) {
         print('DeliveryService.getMyDriverProfile error: $e');
       }
       rethrow;
     }
+  }
+
+  /// Быстрая проверка без exception для UI.
+  Future<bool> isRegisteredDriver({bool forceRefresh = false}) async {
+    if (!forceRefresh && _isDriver != null) {
+      return _isDriver!;
+    }
+    try {
+      await getMyDriverProfile(forceRefresh: forceRefresh);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void clearDriverCache() {
+    _cachedDriver = null;
+    _isDriver = null;
+    _driverProfileInFlight = null;
+  }
+
+  bool _isNotRegisteredDriverError(Object e) {
+    final text = e.toString();
+    return text.contains('404') ||
+        text.contains('не зарегистрированы как водитель');
   }
 
   /// Обновить профиль водителя
@@ -271,11 +339,17 @@ class DeliveryService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = apiClient.parseResponse(response);
         if (data != null && data['file_url'] != null) {
-          return data['file_url'] as String;
+          return ImageUrlHelper.getFullImageUrlOrEmpty(
+            data['file_url'] as String?,
+          );
         } else if (data != null && data['image_url'] != null) {
-          return data['image_url'] as String;
+          return ImageUrlHelper.getFullImageUrlOrEmpty(
+            data['image_url'] as String?,
+          );
         } else if (data != null && data['url'] != null) {
-          return data['url'] as String;
+          return ImageUrlHelper.getFullImageUrlOrEmpty(
+            data['url'] as String?,
+          );
         }
         throw Exception('URL изображения не найден в ответе');
       } else {

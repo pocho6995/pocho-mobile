@@ -1,3 +1,5 @@
+import '../../utils/image_url_helper.dart';
+
 /// Модель вложения в сообщении
 class Attachment {
   final String url;
@@ -14,7 +16,7 @@ class Attachment {
 
   factory Attachment.fromJson(Map<String, dynamic> json) {
     return Attachment(
-      url: json['url'] as String? ?? '',
+      url: ImageUrlHelper.getFullImageUrlOrEmpty(json['url'] as String?),
       type: json['type'] as String? ?? 'file',
       name: json['name'] as String? ?? 'file',
       size: (json['size'] as num?)?.toInt() ?? 0,

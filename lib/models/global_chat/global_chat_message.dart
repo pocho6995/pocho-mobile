@@ -1,3 +1,4 @@
+import '../../utils/image_url_helper.dart';
 import 'attachment.dart';
 
 /// Модель сообщения в глобальном чате
@@ -58,7 +59,9 @@ class GlobalChatMessage {
       id: (json['id'] as num?)?.toInt() ?? 0,
       userId: (json['user_id'] as num?)?.toInt() ?? 0,
       userName: json['user_name'] as String? ?? 'Пользователь',
-      userAvatar: json['user_avatar'] as String?,
+      userAvatar: ImageUrlHelper.getFullImageUrl(
+        json['user_avatar'] as String?,
+      ),
       message: json['message'] as String?,
       messageType: MessageType.fromString(
         json['message_type'] as String? ?? 'text',

@@ -1,3 +1,5 @@
+import '../utils/image_url_helper.dart';
+
 class CarService {
   CarService({
     required this.id,
@@ -42,7 +44,9 @@ class CarService {
       address: json['address'] as String,
       rating: (json['rating'] as num).toDouble(),
       reviewCount: json['review_count'] as int,
-      imageUrl: json['image_url'] as String,
+      imageUrl: ImageUrlHelper.getFullImageUrlOrEmpty(
+        json['image_url'] as String?,
+      ),
       category: json['category'] as String,
       services: (json['services'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       workingHours: json['working_hours'] as String,

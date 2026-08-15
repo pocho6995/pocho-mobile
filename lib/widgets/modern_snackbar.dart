@@ -20,9 +20,13 @@ class ModernSnackBar {
     IconData? icon,
     Color? backgroundColor,
   }) {
-    final overlay = Overlay.of(context);
+    if (!context.mounted) return;
+
+    final overlay = Overlay.maybeOf(context);
+    if (overlay == null) return;
+
     late OverlayEntry overlayEntry;
-    
+
     overlayEntry = OverlayEntry(
       builder: (context) => _ModernSnackBarWidget(
         message: message,

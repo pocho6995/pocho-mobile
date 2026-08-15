@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 
 import '../services/api_client.dart';
+import '../utils/image_url_helper.dart';
 
 import '../di/injection_container.dart' as di;
 import '../services/profile_service.dart';
@@ -64,22 +65,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _checkIfDriver() async {
-    try {
-      await _deliveryService.getMyDriverProfile();
-      if (mounted) {
-        setState(() {
-          _isDriver = true;
-          _isCheckingDriver = false;
-        });
-      }
-    } catch (e) {
-      // Если ошибка 404 или другая - пользователь не водитель
-      if (mounted) {
-        setState(() {
-          _isDriver = false;
-          _isCheckingDriver = false;
-        });
-      }
+    final isDriver = await _deliveryService.isRegisteredDriver();
+    if (mounted) {
+      setState(() {
+        _isDriver = isDriver;
+        _isCheckingDriver = false;
+      });
     }
   }
 
@@ -1780,33 +1771,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   String _getFullImageUrl(String? imageUrl) {
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return '';
-    }
-
-    // Если URL уже полный (начинается с http:// или https://), возвращаем как есть
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-
-    // Если URL относительный, добавляем baseUrl
-    final baseUrl = ApiClient.baseUrl;
-    // Убираем слэш в конце baseUrl, если есть
-    final cleanBaseUrl = baseUrl.endsWith('/')
-        ? baseUrl.substring(0, baseUrl.length - 1)
-        : baseUrl;
-    // Убираем слэш в начале imageUrl, если есть
-    final cleanImageUrl = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
-
-    final fullUrl = '$cleanBaseUrl$cleanImageUrl';
-
-    if (kDebugMode) {
-      print('🖼️ Image URL transformation:');
-      print('  Original: $imageUrl');
-      print('  Full URL: $fullUrl');
-    }
-
-    return fullUrl;
+    return ImageUrlHelper.getFullImageUrlOrEmpty(imageUrl);
   }
 
   Widget _buildDocumentImage(String imageUrl) {

@@ -74,18 +74,29 @@ class AppConfig {
   }) {
     final fromEnv = envUrl?.trim();
     if (fromEnv != null && fromEnv.isNotEmpty && !isLoopback(fromEnv)) {
-      return normalizeLocalDevHost(fromEnv, isAndroid: isAndroid);
+      return _toWebSocketScheme(
+        normalizeLocalDevHost(fromEnv, isAndroid: isAndroid),
+      );
     }
 
     if (compileUrl.isNotEmpty && !isLoopback(compileUrl)) {
-      return normalizeLocalDevHost(compileUrl, isAndroid: isAndroid);
+      return _toWebSocketScheme(
+        normalizeLocalDevHost(compileUrl, isAndroid: isAndroid),
+      );
     }
 
-    if (apiBaseUrl.startsWith('https://')) {
-      return apiBaseUrl.replaceFirst('https://', 'wss://');
+    return _toWebSocketScheme(apiBaseUrl);
+  }
+
+  static String _toWebSocketScheme(String url) {
+    if (url.startsWith('https://')) {
+      return url.replaceFirst('https://', 'wss://');
     }
-    if (apiBaseUrl.startsWith('http://')) {
-      return apiBaseUrl.replaceFirst('http://', 'ws://');
+    if (url.startsWith('http://')) {
+      return url.replaceFirst('http://', 'ws://');
+    }
+    if (url.startsWith('wss://') || url.startsWith('ws://')) {
+      return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
     }
     return productionWsBaseUrl;
   }

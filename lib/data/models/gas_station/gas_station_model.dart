@@ -231,7 +231,7 @@ class ReviewModel extends Review {
       gasStationId: json['gas_station_id'] as int,
       userId: json['user_id'] as int,
       userName: json['user_name'] as String?,
-      userAvatar: json['user_avatar'] as String?,
+      userAvatar: ImageUrlHelper.getFullImageUrl(json['user_avatar'] as String?),
       rating: json['rating'] as int,
       comment: json['comment'] as String?,
       createdAt: json['created_at'] != null

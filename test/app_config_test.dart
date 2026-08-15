@@ -93,9 +93,9 @@ void main() {
       expect(ws, 'wss://olmatech.uz');
     });
 
-    test('uses explicit non-loopback ws env', () {
+    test('converts https env to wss', () {
       final ws = AppConfig.resolveWsBaseUrl(
-        envUrl: 'wss://olmatech.uz',
+        envUrl: 'https://olmatech.uz',
         compileUrl: '',
         apiBaseUrl: 'https://example.com',
         isAndroid: false,

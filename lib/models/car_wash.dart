@@ -1,3 +1,5 @@
+import '../utils/image_url_helper.dart';
+
 class CarWash {
   CarWash({
     required this.id,
@@ -42,7 +44,9 @@ class CarWash {
       address: json['address'] as String,
       rating: (json['rating'] as num).toDouble(),
       reviewCount: json['review_count'] as int,
-      imageUrl: json['image_url'] as String,
+      imageUrl: ImageUrlHelper.getFullImageUrlOrEmpty(
+        json['image_url'] as String?,
+      ),
       washTypes: (json['wash_types'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       priceRange: json['price_range'] as String,
       workingHours: json['working_hours'] as String,

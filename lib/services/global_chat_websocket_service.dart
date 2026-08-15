@@ -5,17 +5,20 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/app_config.dart';
 import '../models/global_chat/global_chat_message.dart';
+import '../utils/websocket_uri.dart';
 import 'token_storage.dart';
 
-/// WebSocket сервис для глобального чата в реальном времени
+/// WebSocket сервис для глобального чата в реальном времени.
+/// Если сервер не отдаёт WS (404 / not upgraded) — не крутим бесконечный reconnect.
 class GlobalChatWebSocketService {
   WebSocketChannel? _channel;
   final TokenStorage _tokenStorage;
   Timer? _pingTimer;
   bool _isConnected = false;
   bool _isConnecting = false;
+  bool _permanentFailure = false;
+  int _reconnectAttempt = 0;
 
-  // Callbacks
   Function(GlobalChatMessage)? onMessageReceived;
   Function(int)? onOnlineCountUpdated;
   Function(int)? onMessageDeleted;
@@ -23,124 +26,53 @@ class GlobalChatWebSocketService {
   Function()? onDisconnected;
   Function(dynamic)? onError;
 
+  /// Вызывается, когда WS недоступен и нужен HTTP polling.
+  Function()? onFallbackToPolling;
+
   GlobalChatWebSocketService({required TokenStorage tokenStorage})
     : _tokenStorage = tokenStorage;
 
-  /// Подключиться к WebSocket глобального чата
+  bool get isConnected => _isConnected;
+  bool get hasPermanentFailure => _permanentFailure;
+
   Future<void> connect() async {
-    if (_isConnecting || _isConnected) {
-      if (kDebugMode) {
-        print('WebSocket уже подключен или подключается');
-      }
+    if (_permanentFailure) {
+      onFallbackToPolling?.call();
       return;
     }
+    if (_isConnecting || _isConnected) return;
 
     try {
       _isConnecting = true;
 
       final token = await _tokenStorage.getAccessToken();
       if (token == null || token.isEmpty) {
-        if (kDebugMode) {
-          print('WebSocket: Токен не найден, подключение невозможно');
-        }
         _isConnecting = false;
         return;
       }
 
-      final baseUrl = AppConfig.wsBaseUrl;
-
-      final wsUrl =
-          '$baseUrl/api/v1/global-chat/ws?token=${Uri.encodeComponent(token)}';
-
-      if (kDebugMode) {
-        print('🔍 Global Chat WebSocket URL Debug:');
-        print('   Final baseUrl: $baseUrl');
-        print('   Final wsUrl: $wsUrl');
-      }
+      final finalUri = WebSocketUriBuilder.build(
+        baseUrl: AppConfig.wsBaseUrl,
+        path: '/api/v1/global-chat/ws',
+        queryParameters: {'token': token},
+      );
 
       if (kDebugMode) {
-        print('🔍 Global Chat WebSocket: Проверка параметров');
-        print('   Token length: ${token.length}');
-        print(
-          '   Token preview: ${token.substring(0, token.length > 20 ? 20 : token.length)}...',
-        );
-      }
-
-      // Парсим URI и проверяем протокол
-      final uri = Uri.parse(wsUrl);
-      if (kDebugMode) {
-        print('🔍 Parsed URI Debug:');
-        print('   Scheme: ${uri.scheme}');
-        print('   Host: ${uri.host}');
-        print('   Port: ${uri.port}');
-        print('   HasPort: ${uri.hasPort}');
-        print('   Full URI: $uri');
-      }
-
-      // Если схема wss:// и порт 0 или не указан, исправляем на порт 443
-      // Если схема ws:// и порт 0 или не указан, исправляем на порт 80
-      Uri finalUri = uri;
-      if (uri.scheme == 'wss' && (uri.port == 0 || !uri.hasPort)) {
-        finalUri = uri.replace(port: 443);
-        if (kDebugMode) {
-          print('⚠️ WSS port was 0 or missing, corrected to 443');
-          print('   Corrected URI: $finalUri');
-        }
-      } else if (uri.scheme == 'ws' && (uri.port == 0 || !uri.hasPort)) {
-        finalUri = uri.replace(port: 80);
-        if (kDebugMode) {
-          print('⚠️ WS port was 0 or missing, corrected to 80');
-          print('   Corrected URI: $finalUri');
-        }
-      }
-
-      if (kDebugMode) {
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('🔌 Global Chat WebSocket: Подключение...');
-        print('📍 Final URI: $finalUri');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('🔌 Global Chat WebSocket: $finalUri');
       }
 
       _channel = WebSocketChannel.connect(finalUri);
 
+      // Ждём готовности канала — иначе ошибка upgrade приходит асинхронно
+      await _channel!.ready.timeout(const Duration(seconds: 12));
+
       _channel!.stream.listen(
         _handleMessage,
-        onError: (error) {
-          if (kDebugMode) {
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('❌ Global Chat WebSocket Error: $error');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          }
-          _isConnected = false;
-          _isConnecting = false;
-          onError?.call(error);
-          // Автоматическое переподключение через 5 секунд
-          Future.delayed(const Duration(seconds: 5), () {
-            if (!_isConnected) {
-              connect();
-            }
-          });
-        },
-        onDone: () {
-          if (kDebugMode) {
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('🔌 Global Chat WebSocket: Соединение закрыто');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          }
-          _isConnected = false;
-          _isConnecting = false;
-          onDisconnected?.call();
-          // Автоматическое переподключение через 5 секунд
-          Future.delayed(const Duration(seconds: 5), () {
-            if (!_isConnected) {
-              connect();
-            }
-          });
-        },
+        onError: _onSocketError,
+        onDone: _onSocketDone,
         cancelOnError: false,
       );
 
-      // Запускаем ping каждые 30 секунд
       _pingTimer?.cancel();
       _pingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
         _sendPing();
@@ -148,138 +80,118 @@ class GlobalChatWebSocketService {
 
       _isConnected = true;
       _isConnecting = false;
-
-      if (kDebugMode) {
-        print('✅ Global Chat WebSocket: Подключено');
-      }
-
+      _reconnectAttempt = 0;
+      _permanentFailure = false;
       onConnected?.call();
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ Global Chat WebSocket: Ошибка подключения');
-        print('   Error: $e');
-      }
       _isConnected = false;
       _isConnecting = false;
-      onError?.call(e);
+      _handleConnectFailure(e);
     }
   }
 
-  /// Обработка входящих сообщений
+  void _onSocketError(dynamic error) {
+    if (kDebugMode) {
+      print('❌ Global Chat WebSocket Error: $error');
+    }
+    _isConnected = false;
+    _isConnecting = false;
+    onError?.call(error);
+    _handleConnectFailure(error);
+  }
+
+  void _onSocketDone() {
+    _isConnected = false;
+    _isConnecting = false;
+    onDisconnected?.call();
+    if (!_permanentFailure) {
+      _scheduleReconnect();
+    }
+  }
+
+  void _handleConnectFailure(Object error) {
+    onError?.call(error);
+
+    if (WebSocketUriBuilder.isPermanentFailure(error)) {
+      _permanentFailure = true;
+      _pingTimer?.cancel();
+      if (kDebugMode) {
+        print(
+          '⚠️ Global Chat WebSocket недоступен на сервере — переключаемся на polling',
+        );
+      }
+      onFallbackToPolling?.call();
+      return;
+    }
+
+    _scheduleReconnect();
+  }
+
+  void _scheduleReconnect() {
+    if (_permanentFailure || _isConnected || _isConnecting) return;
+    _reconnectAttempt++;
+    if (_reconnectAttempt > 5) {
+      _permanentFailure = true;
+      onFallbackToPolling?.call();
+      return;
+    }
+    final delay = Duration(seconds: 3 * _reconnectAttempt);
+    Future.delayed(delay, () {
+      if (!_isConnected && !_permanentFailure) {
+        connect();
+      }
+    });
+  }
+
   void _handleMessage(dynamic message) {
     try {
-      if (message == 'pong') {
-        if (kDebugMode) {
-          print('🏓 Global Chat WebSocket: Получен pong');
-        }
-        return;
-      }
+      if (message == 'pong') return;
 
       final data = jsonDecode(message.toString());
+      final type = data['type'];
 
-      if (kDebugMode) {
-        print('📨 Global Chat WebSocket: Получено сообщение');
-        print('   Type: ${data['type']}');
-      }
-
-      if (data['type'] == 'connection') {
-        if (kDebugMode) {
-          print('✅ Global Chat WebSocket: Подтверждение подключения');
-          print('   User ID: ${data['user_id']}');
-          print('   Online Count: ${data['online_count']}');
-        }
-        final onlineCount = data['online_count'] as int? ?? 0;
-        onOnlineCountUpdated?.call(onlineCount);
+      if (type == 'connection' || type == 'online_count') {
+        onOnlineCountUpdated?.call(data['online_count'] as int? ?? 0);
         return;
       }
 
-      if (data['type'] == 'new_message') {
+      if (type == 'new_message') {
         final messageData = data['message'] as Map<String, dynamic>;
-        final chatMessage = GlobalChatMessage.fromJson(messageData);
-
-        if (kDebugMode) {
-          print('💬 Global Chat WebSocket: Новое сообщение');
-          print('   Message ID: ${chatMessage.id}');
-          print('   User ID: ${chatMessage.userId}');
-        }
-
-        onMessageReceived?.call(chatMessage);
-      } else if (data['type'] == 'online_count') {
-        final onlineCount = data['online_count'] as int? ?? 0;
-        if (kDebugMode) {
-          print('👥 Global Chat WebSocket: Обновление онлайн');
-          print('   Online Count: $onlineCount');
-        }
-        onOnlineCountUpdated?.call(onlineCount);
-      } else if (data['type'] == 'message_deleted') {
+        onMessageReceived?.call(GlobalChatMessage.fromJson(messageData));
+      } else if (type == 'message_deleted') {
         final messageId = data['message_id'] as int?;
-        if (messageId != null) {
-          if (kDebugMode) {
-            print('🗑️ Global Chat WebSocket: Сообщение удалено');
-            print('   Message ID: $messageId');
-          }
-          onMessageDeleted?.call(messageId);
-        }
-      } else if (data['type'] == 'pong') {
-        if (kDebugMode) {
-          print('🏓 Global Chat WebSocket: Получен pong');
-        }
+        if (messageId != null) onMessageDeleted?.call(messageId);
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Global Chat WebSocket: Ошибка обработки сообщения');
-        print('   Error: $e');
-        print('   Message: $message');
+        print('❌ Global Chat WebSocket parse error: $e');
       }
     }
   }
 
-  /// Отправить ping для поддержания соединения
   void _sendPing() {
     if (_channel != null && _isConnected) {
       try {
         _channel!.sink.add('ping');
-        if (kDebugMode) {
-          print('🏓 Global Chat WebSocket: Отправлен ping');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('❌ Global Chat WebSocket: Ошибка отправки ping');
-          print('   Error: $e');
-        }
-      }
+      } catch (_) {}
     }
   }
 
-  /// Отключиться от WebSocket
   Future<void> disconnect() async {
-    if (kDebugMode) {
-      print('🔌 Global Chat WebSocket: Отключение...');
-    }
-
     _pingTimer?.cancel();
     _pingTimer = null;
-
     try {
       await _channel?.sink.close();
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Global Chat WebSocket: Ошибка при отключении');
-        print('   Error: $e');
-      }
-    }
-
+    } catch (_) {}
     _channel = null;
     _isConnected = false;
     _isConnecting = false;
-
-    if (kDebugMode) {
-      print('✅ Global Chat WebSocket: Отключено');
-    }
-
     onDisconnected?.call();
   }
 
-  /// Проверить, подключены ли мы
-  bool get isConnected => _isConnected;
+  /// Сброс флага, чтобы снова попробовать WS (например после смены сервера).
+  void resetPermanentFailure() {
+    _permanentFailure = false;
+    _reconnectAttempt = 0;
+  }
 }

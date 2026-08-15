@@ -90,22 +90,12 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _checkIfDriver() async {
-    try {
-      await _deliveryService.getMyDriverProfile();
-      if (mounted) {
-        setState(() {
-          _isDriver = true;
-          _isCheckingDriver = false;
-        });
-      }
-    } catch (e) {
-      // Если ошибка 404 или другая - пользователь не водитель
-      if (mounted) {
-        setState(() {
-          _isDriver = false;
-          _isCheckingDriver = false;
-        });
-      }
+    final isDriver = await _deliveryService.isRegisteredDriver();
+    if (mounted) {
+      setState(() {
+        _isDriver = isDriver;
+        _isCheckingDriver = false;
+      });
     }
   }
 

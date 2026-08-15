@@ -1,3 +1,5 @@
+import '../../utils/image_url_helper.dart';
+
 class ProfileDocument {
   final String? imageUrl;
   final bool verified;
@@ -23,7 +25,7 @@ class ProfileDocument {
     }
     
     return ProfileDocument(
-      imageUrl: json['image_url'] as String?,
+      imageUrl: ImageUrlHelper.getFullImageUrl(json['image_url'] as String?),
       verified: json['verified'] as bool? ?? false,
       uploadedAt: uploadedAt,
     );

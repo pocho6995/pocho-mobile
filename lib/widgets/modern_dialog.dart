@@ -36,10 +36,20 @@ class ModernDialog extends StatelessWidget {
     bool showCloseButton = true,
     bool barrierDismissible = true,
   }) {
+    // После await context часто уже disposed — не падаем.
+    if (!context.mounted) {
+      return Future<T?>.value(null);
+    }
+
+    final navigator = Navigator.maybeOf(context);
+    if (navigator == null) {
+      return Future<T?>.value(null);
+    }
+
     return showDialog<T>(
       context: context,
       barrierDismissible: barrierDismissible,
-      builder: (context) => ModernDialog(
+      builder: (dialogContext) => ModernDialog(
         title: title,
         content: content,
         contentWidget: contentWidget,

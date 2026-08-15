@@ -1,3 +1,5 @@
+import '../../utils/image_url_helper.dart';
+
 class Driver {
   Driver({
     required this.id,
@@ -59,7 +61,7 @@ class Driver {
       phoneNumber: json['phone_number'] as String,
       fullName: json['full_name'] as String,
       email: json['email'] as String,
-      photoUrl: json['photo_url'] as String?,
+      photoUrl: ImageUrlHelper.getFullImageUrl(json['photo_url'] as String?),
       status: json['status'] as String,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       totalOrders: json['total_orders'] as int? ?? 0,

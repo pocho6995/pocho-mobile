@@ -435,6 +435,7 @@ class _OtpScreenState extends State<OtpScreen>
   }
 
   void _showErrorDialog(String message) {
+    if (!mounted) return;
     ModernDialog.show(
       context: context,
       title: 'Ошибка',

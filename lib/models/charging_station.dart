@@ -1,3 +1,5 @@
+import '../utils/image_url_helper.dart';
+
 class ChargingStation {
   ChargingStation({
     required this.id,
@@ -50,7 +52,9 @@ class ChargingStation {
       address: json['address'] as String,
       rating: (json['rating'] as num).toDouble(),
       reviewCount: json['review_count'] as int,
-      imageUrl: json['image_url'] as String,
+      imageUrl: ImageUrlHelper.getFullImageUrlOrEmpty(
+        json['image_url'] as String?,
+      ),
       connectorTypes: (json['connector_types'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??

@@ -85,8 +85,8 @@ class NotificationRepository {
   }
 
   /// Отключиться от WebSocket
-  void disconnectWebSocket() {
-    _webSocketService.disconnect();
+  Future<void> disconnectWebSocket() async {
+    await _webSocketService.disconnect();
   }
 
   /// Переподключиться к WebSocket

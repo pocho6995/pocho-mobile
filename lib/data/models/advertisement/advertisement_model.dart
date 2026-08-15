@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../utils/image_url_helper.dart';
+
 /// Модель рекламного блока
 class Advertisement extends Equatable {
   const Advertisement({
@@ -62,7 +64,9 @@ class Advertisement extends Equatable {
       id: json['id'] as int,
       title: json['title'] as String,
       description: json['description'] as String?,
-      imageUrl: json['image_url'] as String,
+      imageUrl: ImageUrlHelper.getFullImageUrlOrEmpty(
+        json['image_url'] as String?,
+      ),
       linkUrl: json['link_url'] as String?,
       linkType: json['link_type'] as String?,
       adType: json['ad_type'] as String? ?? 'banner',

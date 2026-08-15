@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/app_config.dart';
+import '../utils/websocket_uri.dart';
 import 'token_storage.dart';
 
 /// Модель локации водителя
@@ -79,21 +80,11 @@ class DeliveryTrackingWebSocketService {
         return;
       }
 
-      final baseUrl = AppConfig.wsBaseUrl;
-
-      final wsUrl = '$baseUrl/api/v1/ws?token=${Uri.encodeComponent(token)}';
-
-      // Парсим URI и проверяем протокол
-      final uri = Uri.parse(wsUrl);
-
-      // Если схема wss:// и порт 0 или не указан, исправляем на порт 443
-      // Если схема ws:// и порт 0 или не указан, исправляем на порт 80
-      Uri finalUri = uri;
-      if (uri.scheme == 'wss' && (uri.port == 0 || !uri.hasPort)) {
-        finalUri = uri.replace(port: 443);
-      } else if (uri.scheme == 'ws' && (uri.port == 0 || !uri.hasPort)) {
-        finalUri = uri.replace(port: 80);
-      }
+      final finalUri = WebSocketUriBuilder.build(
+        baseUrl: AppConfig.wsBaseUrl,
+        path: '/api/v1/ws',
+        queryParameters: {'token': token},
+      );
 
       _channel = WebSocketChannel.connect(finalUri);
 

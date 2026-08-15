@@ -146,6 +146,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   }
 
   void _showErrorDialog(String message) {
+    if (!mounted) return;
     ModernDialog.show(
       context: context,
       title: 'Ошибка',

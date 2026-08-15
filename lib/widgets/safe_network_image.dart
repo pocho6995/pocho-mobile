@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/image_url_helper.dart';
+
 /// Безопасный виджет для отображения сетевых изображений с обработкой ошибок
 class SafeNetworkImage extends StatelessWidget {
   const SafeNetworkImage({
@@ -25,13 +27,15 @@ class SafeNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedUrl = ImageUrlHelper.getFullImageUrl(imageUrl);
+
     // Если URL пустой или null, показываем placeholder
-    if (imageUrl == null || imageUrl!.isEmpty) {
+    if (resolvedUrl == null || resolvedUrl.isEmpty) {
       return _buildPlaceholder(context);
     }
 
     Widget imageWidget = Image.network(
-      imageUrl!,
+      resolvedUrl,
       width: width,
       height: height,
       fit: fit,
@@ -137,13 +141,14 @@ class _SafeAvatarState extends State<SafeAvatar> {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedUrl = ImageUrlHelper.getFullImageUrl(widget.imageUrl);
     final hasImageUrl =
-        widget.imageUrl != null && widget.imageUrl!.isNotEmpty && !_hasError;
+        resolvedUrl != null && resolvedUrl.isNotEmpty && !_hasError;
 
     return CircleAvatar(
       radius: widget.radius,
       backgroundColor: widget.backgroundColor ?? Colors.grey.shade300,
-      backgroundImage: hasImageUrl ? NetworkImage(widget.imageUrl!) : null,
+      backgroundImage: hasImageUrl ? NetworkImage(resolvedUrl) : null,
       onBackgroundImageError: hasImageUrl
           ? (exception, stackTrace) {
               // Обрабатываем ошибку загрузки изображения
@@ -209,8 +214,10 @@ class SafeDecorationImageContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedUrl = ImageUrlHelper.getFullImageUrl(imageUrl);
+
     // Если URL пустой или null, показываем placeholder
-    if (imageUrl == null || imageUrl!.isEmpty) {
+    if (resolvedUrl == null || resolvedUrl.isEmpty) {
       return _buildPlaceholder(context);
     }
 
@@ -221,7 +228,7 @@ class SafeDecorationImageContainer extends StatelessWidget {
           child: ClipRRect(
             borderRadius: borderRadius ?? BorderRadius.zero,
             child: Image.network(
-              imageUrl!,
+              resolvedUrl,
               fit: fit,
               errorBuilder: (context, error, stackTrace) {
                 return _buildErrorWidget(context);

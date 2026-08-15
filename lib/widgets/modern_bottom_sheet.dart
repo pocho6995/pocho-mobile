@@ -30,12 +30,16 @@ class ModernBottomSheet extends StatelessWidget {
     bool showCloseButton = false,
     bool enableDrag = true,
   }) {
+    if (!context.mounted) {
+      return Future<T?>.value(null);
+    }
+
     return showModalBottomSheet<T>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: isScrollControlled,
       enableDrag: enableDrag,
-      builder: (context) => ModernBottomSheet(
+      builder: (sheetContext) => ModernBottomSheet(
         title: title,
         showDragHandle: showDragHandle,
         isScrollControlled: isScrollControlled,

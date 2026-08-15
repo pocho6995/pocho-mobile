@@ -7,25 +7,25 @@ class TokenStorage {
   static const String _accessTokenKey = 'access_token';
   static const String _tokenTypeKey = 'token_type';
 
+  String? _cachedAccessToken;
+  String? _cachedTokenType;
+  bool _memoryLoaded = false;
+
   /// Сохранение токена
   Future<void> saveToken(String accessToken, String tokenType) async {
+    _cachedAccessToken = accessToken;
+    _cachedTokenType = tokenType;
+    _memoryLoaded = true;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_accessTokenKey, accessToken);
       await prefs.setString(_tokenTypeKey, tokenType);
-      if (kDebugMode) {
-        print('✅ Token saved: type=$tokenType, token=${accessToken.substring(0, accessToken.length > 20 ? 20 : accessToken.length)}...');
-      }
     } catch (e) {
-      // Если не удалось сохранить, пробуем еще раз через небольшую задержку
       await Future.delayed(const Duration(milliseconds: 100));
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_accessTokenKey, accessToken);
         await prefs.setString(_tokenTypeKey, tokenType);
-        if (kDebugMode) {
-          print('✅ Token saved (retry): type=$tokenType, token=${accessToken.substring(0, accessToken.length > 20 ? 20 : accessToken.length)}...');
-        }
       } catch (e2) {
         if (kDebugMode) {
           print('❌ Failed to save token: $e2');
@@ -35,16 +35,24 @@ class TokenStorage {
     }
   }
 
+  Future<void> _ensureMemoryCache() async {
+    if (_memoryLoaded) return;
+    final prefs = await SharedPreferences.getInstance();
+    _cachedAccessToken = prefs.getString(_accessTokenKey);
+    _cachedTokenType = prefs.getString(_tokenTypeKey);
+    _memoryLoaded = true;
+  }
+
   /// Получение токена
   Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_accessTokenKey);
+    await _ensureMemoryCache();
+    return _cachedAccessToken;
   }
 
   /// Получение типа токена
   Future<String?> getTokenType() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenTypeKey);
+    await _ensureMemoryCache();
+    return _cachedTokenType;
   }
 
   /// Проверка наличия токена
@@ -55,6 +63,9 @@ class TokenStorage {
 
   /// Удаление токена
   Future<void> clearToken() async {
+    _cachedAccessToken = null;
+    _cachedTokenType = null;
+    _memoryLoaded = true;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_accessTokenKey);
     await prefs.remove(_tokenTypeKey);
@@ -62,20 +73,11 @@ class TokenStorage {
 
   /// Получение полного токена для заголовка Authorization
   Future<String?> getAuthorizationHeader() async {
-    final token = await getAccessToken();
-    final type = await getTokenType();
-    if (kDebugMode) {
-      print('🔑 Getting auth header: token=${token != null ? "${token.substring(0, token.length > 20 ? 20 : token.length)}..." : "null"}, type=$type');
-    }
+    await _ensureMemoryCache();
+    final token = _cachedAccessToken;
+    final type = _cachedTokenType;
     if (token != null && type != null) {
-      final header = '$type $token';
-      if (kDebugMode) {
-        print('✅ Auth header created: ${header.substring(0, header.length > 30 ? 30 : header.length)}...');
-      }
-      return header;
-    }
-    if (kDebugMode) {
-      print('ℹ️ No auth header - user not authenticated (this is normal for unauthenticated requests)');
+      return '$type $token';
     }
     return null;
   }
@@ -88,16 +90,12 @@ class TokenStorage {
     }
 
     try {
-      // JWT токен состоит из трех частей: header.payload.signature
       final parts = token.split('.');
       if (parts.length != 3) {
         return false;
       }
 
-      // Декодируем payload (вторая часть)
       final payload = parts[1];
-      
-      // Добавляем padding если нужно (base64 требует padding)
       var normalizedPayload = payload;
       switch (payload.length % 4) {
         case 1:
@@ -111,27 +109,20 @@ class TokenStorage {
           break;
       }
 
-      // Декодируем base64
       final decodedBytes = base64Url.decode(normalizedPayload);
       final decodedString = utf8.decode(decodedBytes);
       final payloadJson = jsonDecode(decodedString) as Map<String, dynamic>;
 
-      // Проверяем exp (expiration time в Unix timestamp)
       final exp = payloadJson['exp'] as int?;
       if (exp == null) {
         return false;
       }
 
-      // Проверяем, не истек ли токен (добавляем небольшой запас в 60 секунд)
       final expirationTime = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
       final now = DateTime.now();
-      final isValid = expirationTime.isAfter(now.add(const Duration(seconds: 60)));
-
-      return isValid;
+      return expirationTime.isAfter(now.add(const Duration(seconds: 60)));
     } catch (e) {
-      // Если не удалось декодировать токен, считаем его невалидным
       return false;
     }
   }
 }
-

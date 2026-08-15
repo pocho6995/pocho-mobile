@@ -1,3 +1,5 @@
+import '../utils/image_url_helper.dart';
+
 class Restaurant {
   Restaurant({
     required this.id,
@@ -43,7 +45,9 @@ class Restaurant {
       rating: (json['rating'] as num).toDouble(),
       reviewCount: json['review_count'] as int,
       priceRange: json['price_range'] as String,
-      imageUrl: json['image_url'] as String,
+      imageUrl: ImageUrlHelper.getFullImageUrlOrEmpty(
+        json['image_url'] as String?,
+      ),
       category: json['category'] as String,
       cuisine: json['cuisine'] as String,
       workingHours: json['working_hours'] as String,

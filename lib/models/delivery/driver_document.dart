@@ -1,3 +1,5 @@
+import '../../utils/image_url_helper.dart';
+
 class DriverDocument {
   DriverDocument({
     required this.id,
@@ -54,8 +56,12 @@ class DriverDocument {
       driverId: json['driver_id'] as int,
       documentType: json['document_type'] as String,
       status: json['status'] as String,
-      frontImageUrl: json['front_image_url'] as String?,
-      backImageUrl: json['back_image_url'] as String?,
+      frontImageUrl: ImageUrlHelper.getFullImageUrl(
+        json['front_image_url'] as String?,
+      ),
+      backImageUrl: ImageUrlHelper.getFullImageUrl(
+        json['back_image_url'] as String?,
+      ),
       documentNumber: json['document_number'] as String?,
       issueDate: json['issue_date'] != null
           ? DateTime.parse(json['issue_date'] as String)

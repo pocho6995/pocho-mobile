@@ -1,3 +1,5 @@
+import '../../utils/image_url_helper.dart';
+
 class Vehicle {
   Vehicle({
     required this.id,
@@ -59,7 +61,7 @@ class Vehicle {
       color: json['color'] as String,
       licensePlate: json['license_plate'] as String,
       vehiclePassportNumber: json['vehicle_passport_number'] as String,
-      photoUrl: json['photo_url'] as String?,
+      photoUrl: ImageUrlHelper.getFullImageUrl(json['photo_url'] as String?),
       capacityKg: json['capacity_kg'] != null
           ? (json['capacity_kg'] as num).toDouble()
           : null,

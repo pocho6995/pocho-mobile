@@ -5,6 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../config/app_config.dart';
 import '../models/support/support_message.dart';
+import '../utils/websocket_uri.dart';
 import 'token_storage.dart';
 
 /// WebSocket сервис для чата поддержки в реальном времени
@@ -60,51 +61,14 @@ class SupportWebSocketService {
         return;
       }
 
-      final baseUrl = AppConfig.wsBaseUrl;
-
-      final wsUrl =
-          '$baseUrl/api/v1/support/ws/ticket/$ticketId?token=${Uri.encodeComponent(token)}';
-
-      if (kDebugMode) {
-        print('🔍 Support WebSocket URL Debug:');
-        print('   Final baseUrl: $baseUrl');
-        print('   Final wsUrl: $wsUrl');
-      }
-
-      // Парсим URI и проверяем протокол
-      final uri = Uri.parse(wsUrl);
-      if (kDebugMode) {
-        print('🔍 Parsed URI Debug:');
-        print('   Scheme: ${uri.scheme}');
-        print('   Host: ${uri.host}');
-        print('   Port: ${uri.port}');
-        print('   HasPort: ${uri.hasPort}');
-        print('   Full URI: $uri');
-      }
-
-      // Если схема wss:// и порт 0 или не указан, исправляем на порт 443
-      // Если схема ws:// и порт 0 или не указан, исправляем на порт 80
-      Uri finalUri = uri;
-      if (uri.scheme == 'wss' && (uri.port == 0 || !uri.hasPort)) {
-        finalUri = uri.replace(port: 443);
-        if (kDebugMode) {
-          print('⚠️ WSS port was 0 or missing, corrected to 443');
-          print('   Corrected URI: $finalUri');
-        }
-      } else if (uri.scheme == 'ws' && (uri.port == 0 || !uri.hasPort)) {
-        finalUri = uri.replace(port: 80);
-        if (kDebugMode) {
-          print('⚠️ WS port was 0 or missing, corrected to 80');
-          print('   Corrected URI: $finalUri');
-        }
-      }
+      final finalUri = WebSocketUriBuilder.build(
+        baseUrl: AppConfig.wsBaseUrl,
+        path: '/api/v1/support/ws/ticket/$ticketId',
+        queryParameters: {'token': token},
+      );
 
       if (kDebugMode) {
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('🔌 Support WebSocket: Подключение...');
-        print('📍 Final URI: $finalUri');
-        print('🎫 Ticket ID: $ticketId');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('🔌 Support WebSocket: $finalUri');
       }
 
       _channel = WebSocketChannel.connect(finalUri);

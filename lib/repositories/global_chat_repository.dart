@@ -19,6 +19,8 @@ class GlobalChatRepository {
   // Кэш сообщений
   List<GlobalChatMessage> _messages = [];
   Set<int> _blockedUserIds = {};
+  Timer? _pollingTimer;
+  bool _isPolling = false;
 
   // Stream для новых сообщений
   final _messageStreamController =
@@ -60,6 +62,7 @@ class GlobalChatRepository {
     };
 
     _webSocketService.onConnected = () {
+      stopPolling();
       if (kDebugMode) {
         print('✅ GlobalChatRepository: WebSocket подключен');
       }
@@ -69,6 +72,13 @@ class GlobalChatRepository {
       if (kDebugMode) {
         print('❌ GlobalChatRepository: WebSocket ошибка: $error');
       }
+    };
+
+    _webSocketService.onFallbackToPolling = () {
+      if (kDebugMode) {
+        print('🔄 GlobalChatRepository: fallback на HTTP polling');
+      }
+      startPolling();
     };
   }
 
@@ -292,27 +302,71 @@ class GlobalChatRepository {
     }
   }
 
-  /// Подключиться к WebSocket
+  /// Подключиться к WebSocket (при недоступности — polling)
   Future<void> connectWebSocket() async {
     try {
       if (kDebugMode) {
         print('🔌 GlobalChatRepository: Подключение к WebSocket...');
       }
       await _webSocketService.connect();
-      if (kDebugMode) {
-        print('✅ GlobalChatRepository: WebSocket подключен');
+      if (_webSocketService.hasPermanentFailure) {
+        startPolling();
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ GlobalChatRepository: Ошибка подключения WebSocket');
-        print('   Error: $e');
+        print('❌ GlobalChatRepository: Ошибка подключения WebSocket: $e');
       }
-      rethrow;
+      startPolling();
+    }
+  }
+
+  /// HTTP polling, пока на сервере нет рабочего WebSocket.
+  void startPolling({Duration interval = const Duration(seconds: 8)}) {
+    if (_isPolling) return;
+    _isPolling = true;
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(interval, (_) => _pollOnce());
+    _pollOnce();
+  }
+
+  void stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+    _isPolling = false;
+  }
+
+  Future<void> _pollOnce() async {
+    try {
+      final response = await _chatService.getMessages(skip: 0, limit: 50);
+      if (response.onlineCount > 0) {
+        _onlineCountStreamController.add(response.onlineCount);
+      }
+
+      final knownIds = _messages.map((m) => m.id).toSet();
+      // API обычно отдаёт от новых к старым
+      final fresh = response.messages
+          .where((m) => !knownIds.contains(m.id))
+          .where((m) => !_blockedUserIds.contains(m.userId))
+          .toList()
+          .reversed;
+
+      for (final message in fresh) {
+        _messages.insert(0, message);
+        _messageStreamController.add(message);
+      }
+
+      // Синхронизируем удаления: если в кэше есть id, которых нет в свежей первой странице —
+      // не трогаем (могут быть старше limit). Только добавляем новые.
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ GlobalChatRepository polling error: $e');
+      }
     }
   }
 
   /// Отключиться от WebSocket
   Future<void> disconnectWebSocket() async {
+    stopPolling();
     await _webSocketService.disconnect();
   }
 
@@ -339,6 +393,7 @@ class GlobalChatRepository {
   }
 
   void dispose() {
+    stopPolling();
     _messageStreamController.close();
     _onlineCountStreamController.close();
     _messageDeletedStreamController.close();

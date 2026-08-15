@@ -1,3 +1,4 @@
+import '../../utils/image_url_helper.dart';
 import 'profile_documents.dart';
 import 'profile_settings.dart';
 
@@ -84,7 +85,7 @@ class UserData {
       phone: json['phone'] as String? ?? '',
       name: json['name'] as String? ?? '',
       email: json['email'] as String?,
-      avatar: json['avatar'] as String?,
+      avatar: ImageUrlHelper.getFullImageUrl(json['avatar'] as String?),
       createdAt: parseDateTime(json['created_at']),
       updatedAt: parseDateTime(json['updated_at']),
       language: json['language'] as String? ?? 'ru',
