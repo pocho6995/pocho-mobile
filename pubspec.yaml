@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.0.1+1
+version: 2.0.2+2
 
 environment:
   sdk: ^3.9.2
@@ -40,20 +40,21 @@ dependencies:
   provider: ^6.1.2
   google_maps_flutter: ^2.7.0
   url_launcher: ^6.3.0
-  google_fonts: ^6.2.1
+  google_fonts: ^8.2.1
   flutter_animate: ^4.5.0
   animated_text_kit: ^4.2.2
   http: ^1.2.2
-  flutter_map: ^7.0.2
-  latlong2: ^0.9.1
+  http_parser: ^4.1.2
+  flutter_map: ^8.3.1
+  latlong2: ^0.10.1
   image_picker: ^1.1.2
-  get_it: ^7.6.4
+  get_it: ^9.2.1
   shared_preferences: ^2.2.2
   web_socket_channel: ^3.0.1
-  flutter_bloc: ^8.1.6
+  flutter_bloc: ^9.1.1
   equatable: ^2.0.5
-  geolocator: ^13.0.1
-  flutter_dotenv: ^5.1.0
+  geolocator: ^14.0.3
+  flutter_dotenv: ^6.0.1
   intl: ^0.20.2
   flex_color_scheme: ^8.1.0
   flutter_svg: ^2.0.10+1
@@ -67,7 +68,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

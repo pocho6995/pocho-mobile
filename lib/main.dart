@@ -125,8 +125,8 @@ Future<void> main() async {
     debugPrint('   API_BASE_URL: ${dotenv.env['API_BASE_URL'] ?? 'not set'}');
     debugPrint('   WS_BASE_URL: ${dotenv.env['WS_BASE_URL'] ?? 'not set'}');
   } catch (e) {
-    // Если .env файл не найден, используем значения по умолчанию
-    debugPrint('⚠️ .env file not found, using default values: $e');
+    // Если .env файл не найден, используем значения по умолчанию из AppConfig
+    debugPrint('⚠️ .env file not found, using production defaults: $e');
   }
   debugPrint('🌐 Resolved API: ${AppConfig.apiBaseUrl}');
   debugPrint('🌐 Resolved WS:  ${AppConfig.wsBaseUrl}');

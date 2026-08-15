@@ -8,6 +8,7 @@ import '../../state/app_state.dart';
 import '../../di/injection_container.dart' as di;
 import '../../repositories/auth_repository.dart';
 import '../../exceptions/auth_exceptions.dart';
+import '../../utils/phone_number_utils.dart';
 import '../../widgets/modern_dialog.dart';
 import '../../widgets/ios_swipe_button.dart';
 import '../../widgets/app_logo.dart';
@@ -48,10 +49,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
     if (value == null || value.isEmpty) {
       return appState.t('enter_phone_error');
     }
-
-    final cleaned = value.replaceAll(' ', '');
-    final regex = RegExp(r'^\+998\d{9}$');
-    if (!regex.hasMatch(cleaned)) {
+    if (!PhoneNumberUtils.isValidUzbek(value)) {
       return appState.t('invalid_phone_error');
     }
     return null;
@@ -68,10 +66,21 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
 
       try {
         // prefixText '+998 ' не входит в controller — собираем E.164 без пробелов
-        final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
-        final cleanedPhone = digits.startsWith('998')
-            ? '+$digits'
-            : '+998$digits';
+        final cleanedPhone = PhoneNumberUtils.normalizeUzbek(
+          _phoneController.text,
+        );
+        if (cleanedPhone == null) {
+          if (mounted) {
+            _showErrorDialog(
+              Provider.of<AppState>(
+                context,
+                listen: false,
+              ).t('invalid_phone_error'),
+            );
+          }
+          return;
+        }
+
 
         if (kDebugMode) {
           print('📱 Проверка регистрации для: $cleanedPhone');
@@ -362,10 +371,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                                       : null,
                                 ),
                                 onChanged: (value) {
-                                  final cleaned =
-                                      '+998${value.replaceAll(' ', '')}';
-                                  final regex = RegExp(r'^\+998\d{9}$');
-                                  final valid = regex.hasMatch(cleaned);
+                                  final valid =
+                                      PhoneNumberUtils.isValidUzbek(value);
                                   if (valid != _isPhoneValid) {
                                     setState(() {
                                       _isPhoneValid = valid;
@@ -377,7 +384,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                                   }
                                 },
                                 validator: (value) =>
-                                    _validateUzbekPhone('+998${value ?? ''}'),
+                                    _validateUzbekPhone(value),
                               ),
                             )
                             .animate()
