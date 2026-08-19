@@ -19,11 +19,10 @@ class DeleteAccountPage extends StatefulWidget {
 }
 
 class _DeleteAccountPageState extends State<DeleteAccountPage> {
-  final _confirmController = TextEditingController();
   late final ProfileService _profileService;
   late final TokenStorage _tokenStorage;
 
-  bool _understood = false;
+  final List<bool> _checks = [false, false, false, false, false];
   bool _isDeleting = false;
 
   @override
@@ -31,26 +30,13 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
     super.initState();
     _profileService = di.getIt<ProfileService>();
     _tokenStorage = di.getIt<TokenStorage>();
-    _confirmController.addListener(() => setState(() {}));
   }
 
-  @override
-  void dispose() {
-    _confirmController.dispose();
-    super.dispose();
-  }
+  bool get _canSubmit => !_isDeleting && _checks.every((checked) => checked);
 
-  String get _requiredWord {
-    final appState = Provider.of<AppState>(context, listen: false);
-    return appState.t('delete_account_confirm_word');
+  void _toggleCheck(int index, bool? value) {
+    setState(() => _checks[index] = value ?? false);
   }
-
-  bool get _wordMatches {
-    return _confirmController.text.trim().toUpperCase() ==
-        _requiredWord.toUpperCase();
-  }
-
-  bool get _canSubmit => _understood && _wordMatches && !_isDeleting;
 
   Future<void> _startDeleteFlow() async {
     final appState = Provider.of<AppState>(context, listen: false);
@@ -120,7 +106,13 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final word = appState.t('delete_account_confirm_word');
+    final checkLabels = [
+      appState.t('delete_account_point_profile'),
+      appState.t('delete_account_point_orders'),
+      appState.t('delete_account_point_chat'),
+      appState.t('delete_account_point_irreversible'),
+      appState.t('delete_account_checkbox'),
+    ];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
@@ -184,58 +176,23 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                   ],
                 ),
               ).animate().fadeIn(duration: 350.ms),
-              const SizedBox(height: 20),
-              _Bullet(text: appState.t('delete_account_point_profile')),
-              _Bullet(text: appState.t('delete_account_point_orders')),
-              _Bullet(text: appState.t('delete_account_point_chat')),
-              _Bullet(text: appState.t('delete_account_point_irreversible')),
               const SizedBox(height: 16),
-              CheckboxListTile(
-                value: _understood,
-                onChanged: _isDeleting
-                    ? null
-                    : (value) => setState(() => _understood = value ?? false),
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                activeColor: Colors.red,
-                title: Text(
-                  appState.t('delete_account_checkbox'),
-                  style: const TextStyle(fontSize: 14, height: 1.35),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                appState.t('delete_account_type_hint').replaceAll('{word}', word),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _confirmController,
-                enabled: !_isDeleting,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  hintText: word,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+              ...List.generate(checkLabels.length, (index) {
+                return CheckboxListTile(
+                  value: _checks[index],
+                  onChanged: _isDeleting
+                      ? null
+                      : (value) => _toggleCheck(index, value),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  activeColor: Colors.red,
+                  title: Text(
+                    checkLabels[index],
+                    style: const TextStyle(fontSize: 14, height: 1.35),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: Colors.red, width: 1.5),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 28),
+                );
+              }),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -272,39 +229,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Bullet extends StatelessWidget {
-  const _Bullet({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 6),
-            child: Icon(Icons.circle, size: 8, color: Colors.red),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.4,
-                color: Colors.grey.shade800,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
