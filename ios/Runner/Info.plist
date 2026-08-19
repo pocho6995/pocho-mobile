@@ -51,6 +51,25 @@
 	<string>Приложению требуется доступ к вашему местоположению для отображения ближайших заправочных станций на карте.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Приложению требуется доступ к вашему местоположению для отображения ближайших заправочных станций на карте.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Приложению требуется доступ к вашему местоположению для отображения ближайших заправочных станций на карте.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Приложению нужна камера, чтобы сделать фото профиля, документов и вложений.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Приложению нужен доступ к фото, чтобы выбрать изображение профиля, документов и вложений.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Приложению нужно сохранять выбранные фото в галерею при необходимости.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Приложению нужен микрофон при записи видео с камеры.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+		<string>tel</string>
+		<string>mailto</string>
+		<string>maps</string>
+		<string>comgooglemaps</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

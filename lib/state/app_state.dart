@@ -165,6 +165,27 @@ const Map<AppLanguage, Map<String, String>> _localizedStrings = {
     'profile_settings': 'Настройки',
     'profile_support': 'Техническая поддержка',
     'profile_logout': 'Выйти',
+    'delete_account_title': 'Удаление аккаунта',
+    'delete_account_button': 'Удалить аккаунт',
+    'delete_account_warning_title': 'Это действие необратимо',
+    'delete_account_warning_body':
+        'Аккаунт и связанные с ним данные будут удалены. Восстановить доступ будет нельзя.',
+    'delete_account_point_profile': 'Будут удалены профиль, фото и документы',
+    'delete_account_point_orders': 'История заказов и избранное будут потеряны',
+    'delete_account_point_chat': 'Сообщения в чатах станут недоступны',
+    'delete_account_point_irreversible': 'Отменить удаление будет невозможно',
+    'delete_account_checkbox':
+        'Я понимаю, что аккаунт будет удалён навсегда, и согласен с этим',
+    'delete_account_confirm_word': 'УДАЛИТЬ',
+    'delete_account_type_hint': 'Введите {word}, чтобы подтвердить',
+    'delete_account_dialog1_title': 'Подтверждение',
+    'delete_account_dialog1_body':
+        'Вы действительно хотите удалить аккаунт? Это первый шаг подтверждения.',
+    'delete_account_dialog2_title': 'Последнее подтверждение',
+    'delete_account_dialog2_body':
+        'Аккаунт будет удалён без возможности восстановления. Продолжить?',
+    'delete_account_confirm_button': 'Удалить навсегда',
+    'delete_account_error': 'Не удалось удалить аккаунт',
     'profile_select_photo': 'Выберите фото',
     'profile_gallery': 'Галерея',
     'profile_camera': 'Камера',
@@ -443,6 +464,7 @@ const Map<AppLanguage, Map<String, String>> _localizedStrings = {
     'global_chat_clear_history_title': 'Очистить историю',
     'global_chat_clear_confirm':
         'Вы уверены, что хотите очистить историю чата? Это действие нельзя отменить. История будет скрыта только для вас.',
+    'global_chat_clear': 'Очистить',
     'global_chat_history_cleared': 'История очищена',
     'global_chat_clear_error': 'Не удалось очистить историю',
     'global_chat_blocked_users': 'Заблокированные пользователи',
@@ -640,6 +662,29 @@ const Map<AppLanguage, Map<String, String>> _localizedStrings = {
     'profile_settings': 'Sozlamalar',
     'profile_support': 'Texnik yordam',
     'profile_logout': 'Chiqish',
+    'delete_account_title': 'Hisobni o\'chirish',
+    'delete_account_button': 'Hisobni o\'chirish',
+    'delete_account_warning_title': 'Bu amalni bekor qilib bo\'lmaydi',
+    'delete_account_warning_body':
+        'Hisob va unga bog\'liq ma\'lumotlar o\'chiriladi. Qayta tiklab bo\'lmaydi.',
+    'delete_account_point_profile': 'Profil, rasm va hujjatlar o\'chiriladi',
+    'delete_account_point_orders':
+        'Buyurtmalar tarixi va sevimlilar yo\'qoladi',
+    'delete_account_point_chat': 'Chatdagi xabarlar mavjud bo\'lmaydi',
+    'delete_account_point_irreversible':
+        'O\'chirishni bekor qilib bo\'lmaydi',
+    'delete_account_checkbox':
+        'Hisob butunlay o\'chirilishini tushunaman va roziman',
+    'delete_account_confirm_word': 'OCHIRISH',
+    'delete_account_type_hint': 'Tasdiqlash uchun {word} so\'zini yozing',
+    'delete_account_dialog1_title': 'Tasdiqlash',
+    'delete_account_dialog1_body':
+        'Hisobni o\'chirishni xohlaysizmi? Bu birinchi tasdiqlash bosqichi.',
+    'delete_account_dialog2_title': 'Oxirgi tasdiqlash',
+    'delete_account_dialog2_body':
+        'Hisob tiklab bo\'lmaydigan tarzda o\'chiriladi. Davom etasizmi?',
+    'delete_account_confirm_button': 'Butunlay o\'chirish',
+    'delete_account_error': 'Hisobni o\'chirib bo\'lmadi',
     'profile_select_photo': 'Rasmni tanlang',
     'profile_gallery': 'Galereya',
     'profile_camera': 'Kamera',

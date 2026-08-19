@@ -10,6 +10,7 @@ import '../repositories/auth_repository.dart';
 import '../services/token_storage.dart';
 import 'auth/phone_auth_screen.dart';
 import 'profile_page.dart';
+import 'profile/delete_account_page.dart';
 import 'global_chat/global_chat_page.dart';
 
 class UserMenuPage extends StatefulWidget {
@@ -383,6 +384,17 @@ class _UserMenuPageState extends State<UserMenuPage> {
                         title: 'Пользовательское соглашение',
                         onTap: () {
                           // TODO: открыть соглашение
+                        },
+                      ),
+                      _MenuItem(
+                        icon: Icons.delete_forever_outlined,
+                        title: appState.t('delete_account_title'),
+                        iconColor: Colors.red,
+                        textColor: Colors.red,
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            DeleteAccountPage.routeName,
+                          );
                         },
                       ),
                     ],

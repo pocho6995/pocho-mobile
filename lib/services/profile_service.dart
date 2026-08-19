@@ -169,6 +169,38 @@ class ProfileService {
     }
   }
 
+  /// Удаление аккаунта пользователя
+  Future<void> deleteAccount() async {
+    const endpoints = [
+      '/api/v1/profile',
+      '/api/v1/users/me',
+      '/api/v1/auth/account',
+    ];
+
+    try {
+      http.Response? lastResponse;
+      for (final endpoint in endpoints) {
+        final response = await apiClient.delete(endpoint);
+        lastResponse = response;
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          return;
+        }
+        if (response.statusCode == 404 || response.statusCode == 405) {
+          continue;
+        }
+        throw _mapHttpError(response);
+      }
+      throw lastResponse == null
+          ? const UnknownException('Не удалось удалить аккаунт')
+          : _mapHttpError(lastResponse);
+    } catch (e) {
+      if (e is AuthException) {
+        rethrow;
+      }
+      throw _handleError(e);
+    }
+  }
+
   AuthException _handleError(dynamic error) {
     if (error is AuthException) {
       return error;

@@ -7,6 +7,7 @@ import 'dart:io';
 
 import '../services/api_client.dart';
 import '../utils/image_url_helper.dart';
+import '../utils/media_picker_helper.dart';
 
 import '../di/injection_container.dart' as di;
 import '../services/profile_service.dart';
@@ -24,6 +25,7 @@ import '../services/delivery_service.dart';
 import '../state/app_state.dart';
 import 'support/support_tickets_page.dart';
 import 'delivery/my_orders_page.dart';
+import 'profile/delete_account_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -189,19 +191,18 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _pickAvatar(String source) async {
     try {
-      final ImagePicker picker = ImagePicker();
       XFile? pickedFile;
 
       // Выбираем источник изображения
       if (source == 'gallery') {
-        pickedFile = await picker.pickImage(
+        pickedFile = await MediaPickerHelper.pickImage(
           source: ImageSource.gallery,
           imageQuality: 85,
           maxWidth: 800,
           maxHeight: 800,
         );
       } else if (source == 'camera') {
-        pickedFile = await picker.pickImage(
+        pickedFile = await MediaPickerHelper.pickImage(
           source: ImageSource.camera,
           imageQuality: 85,
           maxWidth: 800,
@@ -292,19 +293,18 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _pickImage(String source, bool isPassport) async {
     try {
-      final ImagePicker picker = ImagePicker();
       XFile? pickedFile;
 
       // Выбираем источник изображения
       if (source == 'gallery') {
-        pickedFile = await picker.pickImage(
+        pickedFile = await MediaPickerHelper.pickImage(
           source: ImageSource.gallery,
           imageQuality: 85,
           maxWidth: 1920,
           maxHeight: 1920,
         );
       } else if (source == 'camera') {
-        pickedFile = await picker.pickImage(
+        pickedFile = await MediaPickerHelper.pickImage(
           source: ImageSource.camera,
           imageQuality: 85,
           maxWidth: 1920,
@@ -1197,6 +1197,25 @@ class _ProfilePageState extends State<ProfilePage> {
                                 .animate()
                                 .fadeIn(duration: 400.ms, delay: 600.ms)
                                 .slideY(begin: 0.2, end: 0),
+                            SizedBox(height: isSmallScreen ? 12 : 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed(
+                                    DeleteAccountPage.routeName,
+                                  );
+                                },
+                                child: Text(
+                                  appState.t('delete_account_button'),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red.shade400,
+                                  ),
+                                ),
+                              ),
+                            ),
                             SizedBox(height: isSmallScreen ? 20 : 24),
                           ],
                         ),

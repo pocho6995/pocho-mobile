@@ -30,6 +30,7 @@ import 'screens/car_wash_detail_page.dart';
 import 'screens/favorites_charging_stations_page.dart';
 import 'screens/charging_station_detail_page.dart';
 import 'screens/profile_page.dart';
+import 'screens/profile/delete_account_page.dart';
 import 'screens/legal/terms_and_privacy_page.dart';
 
 import 'screens/support/support_chat_page.dart';
@@ -261,6 +262,7 @@ class PochoApp extends StatelessWidget {
               FavoritesChargingStationsPage.routeName: (_) =>
                   const FavoritesChargingStationsPage(),
               UserMenuPage.routeName: (_) => const UserMenuPage(),
+              DeleteAccountPage.routeName: (_) => const DeleteAccountPage(),
               AiAssistantPage.routeName: (_) => const AiAssistantPage(),
               TermsAndPrivacyPage.routeName: (_) => const TermsAndPrivacyPage(),
               SupportTicketsPage.routeName: (_) => const SupportTicketsPage(),

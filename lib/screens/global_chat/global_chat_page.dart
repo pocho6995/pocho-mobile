@@ -13,6 +13,7 @@ import '../../models/global_chat/global_chat_message.dart';
 import '../../models/global_chat/attachment.dart';
 import '../../models/global_chat/user_block.dart';
 import '../../widgets/modern_snackbar.dart';
+import '../../utils/media_picker_helper.dart';
 import '../../widgets/modern_dialog.dart';
 import '../../widgets/modern_bottom_sheet.dart';
 import '../../widgets/safe_network_image.dart';
@@ -445,8 +446,7 @@ class _GlobalChatPageState extends State<GlobalChatPage> {
       File? selectedFile;
 
       if (fileType == 'image') {
-        final picker = ImagePicker();
-        final pickedFile = await picker.pickImage(
+        final pickedFile = await MediaPickerHelper.pickImage(
           source: ImageSource.gallery,
           imageQuality: 85,
           maxWidth: 1920,
@@ -455,8 +455,7 @@ class _GlobalChatPageState extends State<GlobalChatPage> {
         if (pickedFile == null) return;
         selectedFile = File(pickedFile.path);
       } else if (fileType == 'video') {
-        final picker = ImagePicker();
-        final pickedFile = await picker.pickVideo(
+        final pickedFile = await MediaPickerHelper.pickVideo(
           source: ImageSource.gallery,
           maxDuration: const Duration(minutes: 10),
         );

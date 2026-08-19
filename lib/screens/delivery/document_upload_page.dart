@@ -8,6 +8,7 @@ import '../../models/delivery/driver_document.dart';
 import '../../widgets/modern_snackbar.dart';
 import '../../widgets/safe_network_image.dart';
 import '../../utils/image_url_helper.dart';
+import '../../utils/media_picker_helper.dart';
 
 class DocumentUploadPage extends StatefulWidget {
   const DocumentUploadPage({
@@ -93,18 +94,16 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
 
   Future<void> _pickImage(String side, String source) async {
     try {
-      final ImagePicker picker = ImagePicker();
       XFile? pickedFile;
-
       if (source == 'gallery') {
-        pickedFile = await picker.pickImage(
+        pickedFile = await MediaPickerHelper.pickImage(
           source: ImageSource.gallery,
           imageQuality: 85,
           maxWidth: 1920,
           maxHeight: 1920,
         );
       } else if (source == 'camera') {
-        pickedFile = await picker.pickImage(
+        pickedFile = await MediaPickerHelper.pickImage(
           source: ImageSource.camera,
           imageQuality: 85,
           maxWidth: 1920,
